@@ -16,6 +16,8 @@ bool sysInfoFetched = false;
 double fps;
 float frametime;
 logData currentLogData = {};
+std::mutex currentLogDataMutex;
+
 std::unique_ptr<Logger> logger;
 ofstream output_file;
 std::thread log_thread;
@@ -229,11 +231,14 @@ void Logger::try_log() {
   auto now = Clock::now();
   auto elapsedLog = now - m_log_start;
 
-  currentLogData.previous = elapsedLog;
-  currentLogData.fps = fps;
-  currentLogData.frametime = frametime;
-  m_log_array.push_back(currentLogData);
+  {
+    std::lock_guard<std::mutex> l(currentLogDataMutex);
+    currentLogData.previous = elapsedLog;
+    currentLogData.fps = fps;
+    currentLogData.frametime = frametime;
+    m_log_array.push_back(currentLogData);
   writeToFile();
+  }
 
   if(log_duration && (elapsedLog >= std::chrono::seconds(log_duration))){
     stop_logging();
