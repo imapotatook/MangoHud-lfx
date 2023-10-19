@@ -234,10 +234,9 @@ void Logger::try_log() {
   {
     std::lock_guard<std::mutex> l(currentLogDataMutex);
     currentLogData.previous = elapsedLog;
-    currentLogData.fps = fps;
+    currentLogData.fps = 1000.f / (frametime / 1000.f);
     currentLogData.frametime = frametime;
     m_log_array.push_back(currentLogData);
-  writeToFile();
   }
 
   if(log_duration && (elapsedLog >= std::chrono::seconds(log_duration))){
